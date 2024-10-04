@@ -62,34 +62,26 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	public void setPieces() {
 		
-		/*
-		 * pieces.add(new Pawn(WHITE,0,6)); pieces.add(new Pawn(WHITE,1,6));
-		 * pieces.add(new Pawn(WHITE,2,6)); //pieces.add(new Pawn(WHITE,3,6));
-		 * pieces.add(new Pawn(WHITE,4,6)); pieces.add(new Pawn(WHITE,5,6));
-		 * pieces.add(new Pawn(WHITE,6,6)); pieces.add(new Pawn(WHITE,7,6));
-		 * pieces.add(new Rook(WHITE,0,7)); pieces.add(new Knight(WHITE,1,7));
-		 * pieces.add(new Bishop(WHITE,2,7)); pieces.add(new Queen(WHITE,3,7));
-		 * pieces.add(new King(WHITE,4,7)); pieces.add(new Knight(WHITE,6,7));
-		 * pieces.add(new Bishop(WHITE,5,7)); pieces.add(new Rook(WHITE,7,7));
-		 * 
-		 * pieces.add(new Pawn(BLACK,0,1)); pieces.add(new Pawn(BLACK,1,1));
-		 * pieces.add(new Pawn(BLACK,2,1)); //pieces.add(new Pawn(BLACK,3,1));
-		 * pieces.add(new Pawn(BLACK,4,1)); pieces.add(new Pawn(BLACK,5,1));
-		 * pieces.add(new Pawn(BLACK,6,1)); pieces.add(new Pawn(BLACK,7,1));
-		 * pieces.add(new Rook(BLACK,0,0)); pieces.add(new Knight(BLACK,1,0));
-		 * pieces.add(new Bishop(BLACK,2,0)); pieces.add(new Queen(BLACK,3,0));
-		 * pieces.add(new King(BLACK,4,0)); pieces.add(new Knight(BLACK,6,0));
-		 * pieces.add(new Bishop(BLACK,5,0)); pieces.add(new Rook(BLACK,7,0));
-		 */
 		
-		pieces.add(new King(WHITE,4,4));
-		pieces.add(new King(BLACK,7,0));
-		pieces.add(new Queen(BLACK,3,0));
-		pieces.add(new Queen(BLACK,5,0));
-		pieces.add(new Queen(BLACK,0,3));
-		pieces.add(new Queen(BLACK,0,5));
-		pieces.add(new Pawn(WHITE,7,6));
-		pieces.add(new Queen(BLACK,6,0));
+		  pieces.add(new Pawn(WHITE,0,6)); pieces.add(new Pawn(WHITE,1,6));
+		  pieces.add(new Pawn(WHITE,2,6)); pieces.add(new Pawn(WHITE,3,6));
+		  pieces.add(new Pawn(WHITE,4,6)); pieces.add(new Pawn(WHITE,5,6));
+		  pieces.add(new Pawn(WHITE,6,6)); pieces.add(new Pawn(WHITE,7,6));
+		  pieces.add(new Rook(WHITE,0,7)); pieces.add(new Knight(WHITE,1,7));
+		  pieces.add(new Bishop(WHITE,2,7)); pieces.add(new Queen(WHITE,3,7));
+		  pieces.add(new King(WHITE,4,7)); pieces.add(new Knight(WHITE,6,7));
+		  pieces.add(new Bishop(WHITE,5,7)); pieces.add(new Rook(WHITE,7,7));
+		  
+		  pieces.add(new Pawn(BLACK,0,1)); pieces.add(new Pawn(BLACK,1,1));
+		  pieces.add(new Pawn(BLACK,2,1)); pieces.add(new Pawn(BLACK,3,1));
+		  pieces.add(new Pawn(BLACK,4,1)); pieces.add(new Pawn(BLACK,5,1));
+		  pieces.add(new Pawn(BLACK,6,1)); pieces.add(new Pawn(BLACK,7,1));
+		  pieces.add(new Rook(BLACK,0,0)); pieces.add(new Knight(BLACK,1,0));
+		  pieces.add(new Bishop(BLACK,2,0)); pieces.add(new Queen(BLACK,3,0));
+		  pieces.add(new King(BLACK,4,0)); pieces.add(new Knight(BLACK,6,0));
+		  pieces.add(new Bishop(BLACK,5,0)); pieces.add(new Rook(BLACK,7,0));
+		 
+
 	}
 	
 	private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target) {
@@ -127,9 +119,7 @@ public class GamePanel extends JPanel implements Runnable{
 	private void update() {
 		
 		if (promotion) {
-			
 			promoting();
-			
 		}
 		else if (gameover == false && stalemate == false) {
 			
@@ -254,12 +244,15 @@ public class GamePanel extends JPanel implements Runnable{
 		
 		Piece king = getKing(true);
 		
-		if (activeP.canMove(king.col,king.row)) {
-			checkingP = activeP;
-			return true;
-		}
-		else {
-			checkingP = null;
+		for (Piece piece : simPieces) {
+			
+			if (piece.color == currentColor && piece.canMove(king.col,king.row)) {
+				checkingP = activeP;
+				return true;
+			}
+			else {
+				checkingP = null;
+			}
 		}
 		
 		return false;
@@ -438,13 +431,45 @@ public class GamePanel extends JPanel implements Runnable{
 		
 	}
 	private boolean isStalemate() {
+		
+		Piece king = null;
+		Piece preCheckingP = null;
+		int oldCol, oldRow;
+		
+		for (Piece piece : simPieces) {
+			if (piece.type == Type.KING && piece.color != currentColor) {
+				king = piece;
+			}
+		}
+		
+		if (kingCanMove(king)) {
+			return false;
+		}
 
 		for (Piece piece : simPieces) {
-			if (piece.color != currentColor) {
+			if (piece.color != currentColor && piece.type != Type.KING) {
 				for (int col = 0; col < 8; col++) {
 					for (int row = 0; row < 8; row++) {
+						
 						if (piece.canMove(col, row)) {
-							return false;
+							preCheckingP = checkingP;
+							oldCol = piece.col;
+							oldRow = piece.row;
+							
+							piece.col = col;
+							piece.row = row;
+							
+								if (kingInCheck() == false) {
+									
+									checkingP = preCheckingP;
+									piece.col = oldCol;
+									piece.row = oldRow;
+									return false;
+								
+							}
+							checkingP = preCheckingP;
+							piece.col = oldCol;
+							piece.row = oldRow;
 						}
 					}
 				}
